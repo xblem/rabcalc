@@ -1,5 +1,4 @@
 // lib/screens/room_details_screen.dart
-
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -60,11 +59,9 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
       provider.updateStaticRoomDimensionFromText(provider.rabData.ruangKeluargaL2, controllers: _controllers, roomKey: 'ruangKeluargaL2', hasWindow: true);
     }
     
-    // Menyimpan data plafon
-    provider.updateCeilingHeight(double.tryParse(_controllers['ceilingHeightL1']?.text ?? ''));
-    if (widget.floorCount == 2) {
-      provider.updateCeilingHeightL2(double.tryParse(_controllers['ceilingHeightL2']?.text ?? ''));
-    }
+    // --- DIHAPUS DARI SINI ---
+    // Logika penyimpanan data plafon sudah dipindahkan ke `_buildPlafonContent`
+    // agar lebih reaktif dan tidak perlu disimpan saat tombol ditekan.
   }
 
   @override
@@ -202,20 +199,29 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
     );
   }
 
+  // --- FUNGSI DIPERBARUI DARI KODE BARU ---
   Widget _buildPlafonContent(RabProvider provider) {
     return Column(
       children: [
         _buildSingleInput(
           label: "Tinggi Plafon Lantai 1 (m)",
-          controllerKey: 'ceilingHeightL1',
-          initialValue: provider.rabData.ceilingHeightL1?.toString()
+          initialValue: provider.rabData.ceilingHeightL1?.toString(),
+          onChanged: (value) {
+            final parsedValue = double.tryParse(value);
+            // PERBAIKAN: Panggil fungsi yang benar untuk Lantai 1 (hanya 1 argumen)
+            provider.updateCeilingHeight(parsedValue ?? 3.0);
+          },
         ),
         if (widget.floorCount == 2) ...[
           const SizedBox(height: 16),
           _buildSingleInput(
             label: "Tinggi Plafon Lantai 2 (m)",
-            controllerKey: 'ceilingHeightL2',
-            initialValue: provider.rabData.ceilingHeightL2?.toString()
+            initialValue: provider.rabData.ceilingHeightL2?.toString(),
+            onChanged: (value) {
+              final parsedValue = double.tryParse(value);
+              // PERBAIKAN: Panggil fungsi spesifik untuk Lantai 2
+              provider.updateCeilingHeightL2(parsedValue ?? 3.0);
+            },
           ),
         ]
       ],
@@ -308,18 +314,27 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
     );
   }
 
-  Widget _buildSingleInput({required String label, required String controllerKey, String? initialValue}) {
-    _controllers.putIfAbsent(controllerKey, () => TextEditingController(text: initialValue ?? ''));
+  // --- FUNGSI DIPERBARUI UNTUK MENYESUAIKAN DENGAN KODE BARU ---
+  Widget _buildSingleInput({required String label, String? initialValue, required ValueChanged<String> onChanged}) {
+    // Controller dibuat lokal & tidak lagi disimpan di map `_controllers`
+    final controller = TextEditingController(text: initialValue ?? '');
     return Card(
       elevation: 0, shape: RoundedRectangleBorder(side: BorderSide(color: Colors.grey.shade200), borderRadius: BorderRadius.circular(8)), margin: const EdgeInsets.symmetric(vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: _buildTextFormField(label: label, controller: _controllers[controllerKey]!),
+        // `onChanged` diteruskan ke `_buildTextFormField`
+        child: _buildTextFormField(label: label, controller: controller, onChanged: onChanged),
       ),
     );
   }
 
-  TextFormField _buildTextFormField({required String label, required TextEditingController controller, TextInputType keyboardType = const TextInputType.numberWithOptions(decimal: true)}) {
+  // --- FUNGSI DIPERBARUI UNTUK MENYESUAIKAN DENGAN KODE BARU ---
+  TextFormField _buildTextFormField({
+    required String label,
+    required TextEditingController controller,
+    TextInputType keyboardType = const TextInputType.numberWithOptions(decimal: true),
+    ValueChanged<String>? onChanged, // Ditambahkan parameter `onChanged`
+  }) {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(
@@ -327,6 +342,7 @@ class _RoomDetailsScreenState extends State<RoomDetailsScreen> {
         isDense: true, contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       ),
       keyboardType: keyboardType,
+      onChanged: onChanged, // `onChanged` digunakan di sini
     );
   }
   
