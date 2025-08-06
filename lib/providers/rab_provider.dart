@@ -40,21 +40,26 @@ class RabProvider extends ChangeNotifier {
   void updateFloorCount(int count) { _data.floorCount = count; notifyListeners(); }
   void updateLandSize({required double panjang, required double lebar}) { _data.landLength = panjang; _data.landWidth = lebar; notifyListeners(); }
 
-  // FUNGSI INI DIPERBARUI UNTUK MENANGANI TINGGI & JENDELA
-  void updateStaticRoomDimension(RoomDimension room, {double? panjang, double? lebar, double? tinggi, int? jumlahJendela}) {
-    if (panjang != null) room.panjang = panjang;
-    if (lebar != null) room.lebar = lebar;
-    if (tinggi != null) room.tinggi = tinggi;
-    if (jumlahJendela != null) room.jumlahJendela = jumlahJendela;
-    notifyListeners();
+  // FUNGSI INI KEMBALI SEPERTI SEMULA, DIPANGGIL SAAT SAVE
+  void updateCeilingHeight(double? height) {
+    _data.ceilingHeightL1 = height;
   }
-
-  void updateCeilingHeight(int floor, double? height) {
-    if (floor == 1) _data.ceilingHeightL1 = height;
-    if (floor == 2) _data.ceilingHeightL2 = height;
-    notifyListeners();
+  void updateCeilingHeightL2(double? height) {
+    _data.ceilingHeightL2 = height;
   }
   
+  // FUNGSI BARU UNTUK UPDATE DATA STATIS DARI CONTROLLER
+  void updateStaticRoomDimensionFromText(RoomDimension room, {required Map<String, TextEditingController> controllers, required String roomKey, bool hasWindow = false, bool hasHeight = false}) {
+    room.panjang = double.tryParse(controllers['${roomKey}_panjang']?.text ?? '') ?? 0.0;
+    room.lebar = double.tryParse(controllers['${roomKey}_lebar']?.text ?? '') ?? 0.0;
+    if (hasHeight) {
+      room.tinggi = double.tryParse(controllers['${roomKey}_tinggi']?.text ?? '') ?? 0.0;
+    }
+    if (hasWindow) {
+      room.jumlahJendela = int.tryParse(controllers['${roomKey}_jendela']?.text ?? '') ?? 0;
+    }
+  }
+
   // --- Methods untuk data dinamis ---
   void updateTerasCount(int count) => _updateRoomList(_data.teras, count);
   void updateRuangTidurL1Count(int count) => _updateRoomList(_data.ruangTidurL1, count);
@@ -74,17 +79,23 @@ class RabProvider extends ChangeNotifier {
     notifyListeners();
   }
   
-  void updateRoomDimension(List<RoomDimension> roomList, int index, {double? panjang, double? lebar, int? jumlahJendela}) {
-    if (panjang != null) roomList[index].panjang = panjang;
-    if (lebar != null) roomList[index].lebar = lebar;
-    if (jumlahJendela != null) roomList[index].jumlahJendela = jumlahJendela;
-    notifyListeners();
+  // KEMBALIKAN FUNGSI LAMA YANG BEKERJA DENGAN CONTROLLERS
+  void updateRoomDimensions({ required List<RoomDimension> roomList, required String roomKey, required Map<String, TextEditingController> controllers, bool hasWindow = false }) {
+    for (int i = 0; i < roomList.length; i++) {
+      final room = roomList[i];
+      room.panjang = double.tryParse(controllers['${roomKey}_${i}_panjang']?.text ?? '') ?? 0.0;
+      room.lebar = double.tryParse(controllers['${roomKey}_${i}_lebar']?.text ?? '') ?? 0.0;
+      if (hasWindow) {
+        room.jumlahJendela = int.tryParse(controllers['${roomKey}_${i}_jendela']?.text ?? '') ?? 0;
+      }
+    }
   }
   
   void updateMaterialSelection(String category, String? value) {
     _data.materialSelections[category] = value;
     notifyListeners();
   }
+
 
   Future<void> calculateRAB() async {
     _isLoading = true;
@@ -137,7 +148,7 @@ class RabProvider extends ChangeNotifier {
       'custom_prices': {}
     };
 
-    final url = Uri.parse('http://192.168.100.189:5000/hitung-rab'); 
+    final url = Uri.parse('http://10.0.2.2:5000/hitung-rab'); 
     try {
       final body = json.encode(dataToSend);
       log("Mengirim data ke backend: $body");
