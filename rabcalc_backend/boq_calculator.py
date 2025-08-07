@@ -6,9 +6,8 @@ def calculate_boq(project_info, room_details):
     input dimensi detail dari pengguna.
     """
     
-    tinggi_plafon_l1 = project_info.get('ceiling_height', 3.0)
-    # Asumsi tinggi plafon lantai 2 sama jika tidak diinput
-    tinggi_plafon_l2 = project_info.get('ceiling_height_l2', tinggi_plafon_l1)
+    tinggi_plafon_l1 = project_info.get('ceiling_height_l1') or project_info.get('ceiling_height') or 3.0
+    tinggi_plafon_l2 = project_info.get('ceiling_height_l2') or tinggi_plafon_l1
     
     # --- Inisialisasi total volume ---
     total_luas_dinding_m2 = 0.0
@@ -26,13 +25,11 @@ def calculate_boq(project_info, room_details):
         for room in rooms:
             panjang = room.get('panjang', 0.0)
             lebar = room.get('lebar', 0.0)
-            
-            # --- PERBAIKAN DARI KODE BARU DITERAPKAN DI SINI ---
-            # Memastikan 'jumlah_jendela' tidak pernah None
-            jumlah_jendela = room.get('jendela') or 0
+            jumlah_jendela = room.get('jendela', 0)
             
             luas_lantai = panjang * lebar
             keliling = 2 * (panjang + lebar)
+            # Sekarang tinggi_dinding dijamin tidak akan pernah None
             luas_dinding = keliling * tinggi_dinding
 
             total_luas_lantai_m2 += luas_lantai

@@ -15,11 +15,23 @@ def index():
 @app.route('/hitung-rab', methods=['POST'])
 def hitung_rab_endpoint():
     user_data = request.get_json()
+    
+    print("===== DEBUG PYTHON: DATA DITERIMA =====")
+    print(user_data)
+    print("=======================================")
+    
+    
     if not user_data:
         return jsonify({"error": "Data tidak valid"}), 400
 
     # 1. Membongkar paket data lengkap dari Flutter
     project_info = user_data.get('project_info', {})
+    
+    # --- DEBUG VALUE & TYPE ---
+    tinggi_plafon_l1 = project_info.get('ceiling_height_l1')
+    print(f"Value 'ceiling_height_l1': {tinggi_plafon_l1}")
+    print(f"Type 'ceiling_height_l1': {type(tinggi_plafon_l1)}")
+    
     room_details = user_data.get('room_details', {})
     material_selections = user_data.get('material_selections', {})
     custom_prices = user_data.get('custom_prices', {})

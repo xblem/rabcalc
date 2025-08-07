@@ -111,8 +111,8 @@ class RabProvider extends ChangeNotifier {
         'project_name': _data.projectName, 
         'location': _data.location, 
         'floor_count': _data.floorCount, 
-        'ceiling_height': _data.ceilingHeightL1,
-        'ceiling_height_l2': _data.ceilingHeightL2,
+        'ceiling_height_l1': _data.ceilingHeightL1,
+      'ceiling_height_l2': _data.ceilingHeightL2,
       },
       // BAGIAN INI DIPERBARUI UNTUK MENGIRIM SEMUA DATA STATIS
       'static_room_details': {
@@ -149,9 +149,12 @@ class RabProvider extends ChangeNotifier {
     };
 
     final url = Uri.parse('http://10.0.2.2:5000/hitung-rab'); 
+    
     try {
       final body = json.encode(dataToSend);
-      log("Mengirim data ke backend: $body");
+      log("===== DEBUG FLUTTER: DATA YANG DIKIRIM =====");
+      log(body);
+      log("==========================================");
 
       final response = await http.post( url, headers: {"Content-Type": "application/json"}, body: body).timeout(const Duration(seconds: 30));
 
@@ -181,7 +184,7 @@ class RabProvider extends ChangeNotifier {
       );
       _history.insert(0, newHistoryItem);
     }
-  }
+  }   
 
   void startNewCalculation() {
     _data.clear();

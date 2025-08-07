@@ -36,7 +36,7 @@ class UpgradeProScreen extends StatelessWidget {
             _buildPricingCard(
               context: context,
               title: 'Pelajar',
-              price: '49K',
+              price: 'Rp.87.000',
               description: 'Teman setia mahasiswa buat belajar dan latihan nyusun RAB.',
               features: const [
                 'Template Perhitungan RAB',
@@ -49,7 +49,7 @@ class UpgradeProScreen extends StatelessWidget {
             _buildPricingCard(
               context: context,
               title: 'Pemula',
-              price: '100K',
+              price: 'Rp.174.000',
               description: 'Solusi tepat untuk Konsultan atau Perangkat Desa.',
               features: const [
                 'Semua fitur paket Pelajar',
@@ -60,7 +60,7 @@ class UpgradeProScreen extends StatelessWidget {
             _buildPricingCard(
               context: context,
               title: 'Profesional',
-              price: '499K',
+              price: 'Rp.300.000',
               description: 'Dirancang khusus untuk kontraktor memenangkan tender.',
               features: const [
                 'Semua fitur paket Pemula',
@@ -163,7 +163,7 @@ class UpgradeProScreen extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: priceColor, fontFamily: 'Poppins'),
                 children: [
                   TextSpan(
-                    text: ' /m',
+                    text: ' /B',
                     style: TextStyle(fontWeight: FontWeight.normal, fontSize: 14, color: Colors.grey.shade700, fontFamily: 'Poppins'),
                   ),
                 ],
