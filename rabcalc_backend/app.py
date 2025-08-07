@@ -1,5 +1,6 @@
 # rabcalc_backend/app.py
 
+import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from boq_calculator import calculate_boq
@@ -50,4 +51,5 @@ def hitung_rab_endpoint():
     })
 
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', debug=True)
