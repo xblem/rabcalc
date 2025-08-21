@@ -8,8 +8,8 @@ import 'package:rabcalc/screens/auth/welcome_screen.dart';
 import 'package:rabcalc/screens/history_screen.dart';
 import 'package:rabcalc/screens/profile_screen.dart';
 import 'package:rabcalc/screens/project_data_screen.dart';
-import 'package:intl/date_symbol_data_local.dart';  // IMPORT DARI KODE BARU
-
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class AppColors {
   static const Color primaryDark = Color(0xFF030047);
@@ -18,17 +18,21 @@ class AppColors {
   static const Color background = Color(0xFFF8FBFF);
 }
 
-// FUNGSI main() DIPERBARUI DARI KODE BARU
-void main() {
+// FUNGSI main() DIPERBARUI TOTAL
+void main() async {
+  // Wajib ada untuk inisialisasi Firebase
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  
   // Memastikan format tanggal untuk Bahasa Indonesia siap digunakan
-  initializeDateFormatting('id_ID', null).then((_) {
-    runApp(
-      ChangeNotifierProvider(
-        create: (context) => RabProvider(),
-        child: const RabCalcApp(),
-      ),
-    );
-  });
+  await initializeDateFormatting('id_ID', null);
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => RabProvider(),
+      child: const RabCalcApp(),
+    ),
+  );
 }
 
 class RabCalcApp extends StatelessWidget {
@@ -58,13 +62,12 @@ class RabCalcApp extends StatelessWidget {
           ),
         ),
       ),
-      // LAYAR PEMBUKA DIPERBARUI DARI KODE BARU
       home: const WelcomeScreen(),
     );
   }
 }
 
-// Widget MainScreen DARI KODE LAMA (TIDAK DIHAPUS)
+// Widget MainScreen tetap sama
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -104,7 +107,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-// Widget HomePageContent DARI KODE LAMA (TIDAK DIHAPUS)
+// Widget HomePageContent tetap sama
 class HomePageContent extends StatelessWidget {
   const HomePageContent({super.key});
 

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RabCalc</string>
+    <string name="facebook_app_id">1739449420267471</string>
+    <string name="fb_login_protocol_scheme">fb1739449420267471</string>
+    <string name="facebook_client_token">b03f6f1595f8081dd74bc1fb5f5519d9</string>
+</resources>
