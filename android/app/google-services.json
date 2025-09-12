@@ -12,7 +12,20 @@
           "package_name": "com.example.rabcalc"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1058664815794-06ecqn5ch4t6n2r4328ch3ebqkbfp2s6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.rabcalc",
+            "certificate_hash": "93a353458cc0999c39dae2e44c7f14788db7f98d"
+          }
+        },
+        {
+          "client_id": "1058664815794-ika9t4645ecff79ggk92v3ijrlaele4q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAvBJiCDmXhyfmRFAag4VDssbMXgdZHEMA"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1058664815794-ika9t4645ecff79ggk92v3ijrlaele4q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
