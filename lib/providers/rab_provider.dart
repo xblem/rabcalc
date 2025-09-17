@@ -7,6 +7,8 @@ import 'package:rabcalc/models/rab_data.dart';
 import 'package:http/http.dart' as http;
 import 'package:rabcalc/models/room_dimension.dart';
 import 'package:rabcalc/models/history_item.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RabProvider extends ChangeNotifier {
   final RabData _data = RabData();
@@ -176,13 +178,25 @@ class RabProvider extends ChangeNotifier {
   }
 
   void _saveToHistory() {
-    if (_calculationResult != null && _calculationResult!['hasil_rab'] != null) {
-      final newHistoryItem = HistoryItem(
-        projectName: _data.projectName ?? 'Proyek Tanpa Nama',
-        totalCost: _calculationResult!['hasil_rab']['total_biaya_konstruksi_rp'],
-        date: DateTime.now(),
-      );
-      _history.insert(0, newHistoryItem);
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser != null && _calculationResult != null && _calculationResult!['hasil_rab'] != null) {
+      log("Menyimpan hasil perhitungan ke riwayat user: ${currentUser.uid}");
+
+      final historyData = {
+        'projectName': _data.projectName ?? 'Proyek Tanpa Nama',
+        'totalCost': _calculationResult!['hasil_rab']['total_biaya_konstruksi_rp'],
+        'date': Timestamp.now(),
+        'fullCalculationResult': _calculationResult, // Simpan semua hasil untuk detail
+      };
+
+      FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .collection('projects')
+          .add(historyData);
+    } else {
+      log("Gagal menyimpan riwayat: User tidak login atau hasil kalkulasi kosong.");
     }
   }   
 

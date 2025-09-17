@@ -1,15 +1,17 @@
 // lib/main.dart
 
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
+
+import 'package:rabcalc/auth_gate.dart';
 import 'package:rabcalc/providers/rab_provider.dart';
-import 'package:rabcalc/screens/auth/welcome_screen.dart';
+import 'package:rabcalc/services/auth_service.dart';
 import 'package:rabcalc/screens/history_screen.dart';
 import 'package:rabcalc/screens/profile_screen.dart';
 import 'package:rabcalc/screens/project_data_screen.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'package:firebase_core/firebase_core.dart';
 
 class AppColors {
   static const Color primaryDark = Color(0xFF030047);
@@ -18,25 +20,28 @@ class AppColors {
   static const Color background = Color(0xFFF8FBFF);
 }
 
-// FUNGSI main() DIPERBARUI TOTAL
 void main() async {
   // Wajib ada untuk inisialisasi Firebase
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   
-  // Memastikan format tanggal untuk Bahasa Indonesia siap digunakan
+  // Memastikan format tanggal untuk Bahasa Indonesia siap digunakan (dari kode lama)
   await initializeDateFormatting('id_ID', null);
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => RabProvider(),
-      child: const RabCalcApp(),
+    MultiProvider( // Menggunakan MultiProvider dari kode baru
+      providers: [
+        Provider<AuthService>(create: (_) => AuthService()),
+        ChangeNotifierProvider<RabProvider>(create: (_) => RabProvider()),
+      ],
+      child: const MyApp(),
     ),
   );
 }
 
-class RabCalcApp extends StatelessWidget {
-  const RabCalcApp({super.key});
+// Menggunakan MyApp sebagai root, dengan ThemeData dari kode lama
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -62,12 +67,12 @@ class RabCalcApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const WelcomeScreen(),
+      home: const AuthGate(), // Menggunakan AuthGate sebagai home dari kode baru
     );
   }
 }
 
-// Widget MainScreen tetap sama
+// Widget MainScreen dari kode lama tetap dipertahankan
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -107,7 +112,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-// Widget HomePageContent tetap sama
+// Widget HomePageContent dari kode lama tetap dipertahankan
 class HomePageContent extends StatelessWidget {
   const HomePageContent({super.key});
 

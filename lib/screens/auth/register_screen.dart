@@ -1,7 +1,8 @@
 // lib/screens/auth/register_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:rabcalc/main.dart'; // Untuk AppColors
+import 'package:provider/provider.dart';
+import 'package:rabcalc/main.dart';
 import 'package:rabcalc/services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -15,8 +16,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-  final AuthService _authService = AuthService();
+  
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   @override
   void dispose() {
@@ -34,27 +36,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _handleRegister() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      _showErrorSnackbar("Email dan Password tidak boleh kosong.");
+    final authService = Provider.of<AuthService>(context, listen: false);
+
+    // Validasi input
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty || _confirmPasswordController.text.isEmpty) {
+      _showErrorSnackbar("Semua kolom wajib diisi.");
       return;
     }
     if (_passwordController.text != _confirmPasswordController.text) {
       _showErrorSnackbar("Password dan Konfirmasi Password tidak cocok.");
       return;
     }
+    RegExp passwordRegExp = RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$');
+    if (!passwordRegExp.hasMatch(_passwordController.text)) {
+      _showErrorSnackbar("Password harus minimal 8 karakter, mengandung huruf dan angka.");
+      return;
+    }
 
     setState(() => _isLoading = true);
-    final user = await _authService.createUserWithEmail(
-      _emailController.text,
-      _passwordController.text,
+    
+    final user = await authService.createUserWithEmail(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
     );
-    if (!mounted) return;
-    setState(() => _isLoading = false);
 
     if (user == null) {
-      _showErrorSnackbar("Gagal membuat akun. Email mungkin sudah terdaftar atau password terlalu lemah.");
+      // Jika user null (gagal), hentikan loading dan tampilkan error
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showErrorSnackbar("Gagal membuat akun. Email mungkin sudah terdaftar.");
+      }
     }
-    // Jika berhasil, AuthGate akan otomatis pindah ke MainScreen
+    
+    // Jika user berhasil dibuat, tutup halaman register ini.
+    // AuthGate akan menangani navigasi ke halaman utama.
+    if (mounted && user != null) {
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -86,54 +104,71 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 100),
                 Center(child: Image.asset("assets/images/register_illustration.png", height: 180)),
                 const SizedBox(height: 24),
-                const Text("Create Account,", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.primaryDark)),
-                Text("Let's get started!", style: TextStyle(fontSize: 18, color: Colors.grey)),
+                const Text("Buat Akun,", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.primaryDark)),
+                Text("Mari kita mulai!", style: TextStyle(fontSize: 18, color: Colors.grey)),
                 const SizedBox(height: 32),
-                _buildTextField(hint: "Email", icon: Icons.email_outlined, controller: _emailController),
+                
+                _buildTextField(hint: "Email", icon: Icons.email_outlined, controller: _emailController, keyboardType: TextInputType.emailAddress),
                 const SizedBox(height: 16),
-                _buildTextField(hint: "Password", icon: Icons.lock_outline, obscureText: true, controller: _passwordController),
+                _buildTextField(hint: "Password", icon: Icons.lock_outline, controller: _passwordController, isPassword: true),
                 const SizedBox(height: 16),
-                _buildTextField(hint: "Confirm Password", icon: Icons.lock_outline, obscureText: true, controller: _confirmPasswordController),
+                _buildTextField(hint: "Konfirmasi Password", icon: Icons.lock_outline, controller: _confirmPasswordController, isPassword: true),
                 const SizedBox(height: 32),
+                
                 ElevatedButton(
-                  onPressed: _handleRegister,
+                  onPressed: _isLoading ? null : _handleRegister,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryDark,
                     minimumSize: const Size(double.infinity, 50),
                   ),
-                  child: const Text("Sign Up"),
+                  child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text("Daftar Akun"),
                 ),
                 const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Already have an account?"),
+                    const Text("Sudah punya akun?"),
                     TextButton(
-                      onPressed: () => Navigator.pop(context), // Kembali ke halaman login
-                      child: const Text("Sign In", style: TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.bold)),
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Masuk", style: TextStyle(color: AppColors.primaryDark, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
               ],
             ),
           ),
-          if (_isLoading)
-            Container(
-              color: Colors.black.withOpacity(0.5),
-              child: const Center(child: CircularProgressIndicator()),
-            ),
         ],
       ),
     );
   }
 
-  Widget _buildTextField({required String hint, required IconData icon, bool obscureText = false, required TextEditingController controller}) {
+  Widget _buildTextField({
+    required String hint,
+    required IconData icon,
+    required TextEditingController controller,
+    bool isPassword = false,
+    TextInputType keyboardType = TextInputType.text
+  }) {
     return TextField(
       controller: controller,
-      obscureText: obscureText,
+      obscureText: isPassword && !_isPasswordVisible,
+      keyboardType: keyboardType,
       decoration: InputDecoration(
         hintText: hint,
         prefixIcon: Icon(icon, color: Colors.grey.shade500),
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                  color: Colors.grey,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _isPasswordVisible = !_isPasswordVisible;
+                  });
+                },
+              )
+            : null,
         filled: true,
         fillColor: Colors.white,
         enabledBorder: OutlineInputBorder(

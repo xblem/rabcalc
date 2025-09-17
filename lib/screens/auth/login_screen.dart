@@ -1,6 +1,7 @@
 // lib/screens/auth/login_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:rabcalc/main.dart';
 import 'package:rabcalc/services/auth_service.dart';
 import 'package:rabcalc/screens/auth/register_screen.dart'; // <-- IMPORT BARU
@@ -15,7 +16,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final AuthService _authService = AuthService();
   bool _isLoading = false;
 
   @override
@@ -35,8 +35,11 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  @override
+@override
   Widget build(BuildContext context) {
+    // Ambil authService dari Provider di dalam build method (DARI KODE BARU)
+    final authService = Provider.of<AuthService>(context, listen: false);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -54,6 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -78,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       return;
                     }
                     setState(() => _isLoading = true);
-                    final user = await _authService.signInWithEmail(_emailController.text, _passwordController.text);
+                    final user = await authService.signInWithEmail(_emailController.text, _passwordController.text);
                     if (!mounted) return;
                     setState(() => _isLoading = false);
                     if (user == null) {
@@ -108,14 +112,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     _buildSocialButton('assets/images/logo_google.png', onPressed: () async {
                       setState(() => _isLoading = true);
-                      await _authService.signInWithGoogle();
+                      await authService.signInWithGoogle();
                       if (!mounted) return;
                       setState(() => _isLoading = false);
                     }),
                     const SizedBox(width: 20),
                     _buildSocialButton('assets/images/logo_facebook.png', onPressed: () async {
                         setState(() => _isLoading = true);
-                        await _authService.signInWithFacebook();
+                        await authService.signInWithFacebook();
                         if (!mounted) return;
                         setState(() => _isLoading = false);
                     }),

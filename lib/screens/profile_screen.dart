@@ -1,8 +1,10 @@
 // lib/screens/profile_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:rabcalc/main.dart'; // Untuk AppColors
 import 'package:rabcalc/screens/upgrade_pro_screen.dart';
+import 'package:rabcalc/services/auth_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -31,24 +33,23 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showLogoutDialog(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Konfirmasi Keluar'),
-        content: const Text('Apakah Anda yakin ingin keluar?'),
+        content: const Text('Apakah Anda yakin ingin keluar dari akun ini?'),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Tidak')),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
-            onPressed: () {
-              // TODO: Logika logout
-              Navigator.pop(context);
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              Navigator.pop(context); // Tutup dialog
+              await authService.signOut();
             },
-            child: const Text('Ya, Keluar'),
-          ),
+            child: const Text('Ya, Keluar')),
         ],
       ),
     );
@@ -85,35 +86,26 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 30),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Card(
-              color: AppColors.primaryDark,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Upgrade ke RabCalc Pro',
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white)),
-                    const SizedBox(height: 8),
-                    const Text(
-                        'Dapatkan fitur tak terbatas, simpan riwayat, dan ekspor laporan tanpa batas.',
-                        style: TextStyle(color: Colors.white70)),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const UpgradeProScreen())),
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primaryAccent,
-                          foregroundColor: AppColors.primaryDark),
-                      child: const Text('Lihat Benefit'),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Card(
+        color: AppColors.primaryDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Upgrade ke RabCalc Pro', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+              const SizedBox(height: 8),
+              const Text('Dapatkan fitur tak terbatas, simpan riwayat, dan ekspor laporan tanpa batas.', style: TextStyle(color: Colors.white70)),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const UpgradeProScreen())),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryAccent,
+                  foregroundColor: AppColors.primaryDark
+                ),
+                child: const Text('Lihat Benefit'),
                     ),
                   ],
                 ),

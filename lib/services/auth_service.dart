@@ -65,9 +65,24 @@ class AuthService {
         idToken: googleAuth.idToken,
       );
       UserCredential result = await _auth.signInWithCredential(credential);
-      logger.i("Login dengan Google berhasil untuk user: ${result.user?.uid}");
-      return result.user;
-    } on FirebaseAuthException catch (e, s) {
+      User? user = result.user;
+
+      // Jika ini adalah user baru, buatkan dokumen untuknya di Firestore
+      if (user != null && result.additionalUserInfo?.isNewUser == true) {
+        logger.i("User Google baru terdeteksi. Membuat dokumen Firestore...");
+        await _firestore.collection('users').doc(user.uid).set({
+          'uid': user.uid,
+          'email': user.email,
+          'displayName': user.displayName, 
+          'photoURL': user.photoURL,       
+          'createdAt': Timestamp.now(),
+        });
+      }
+      // --- AKHIR PENAMBAHAN ---
+
+      logger.i("Login dengan Google berhasil untuk user: ${user?.uid}");
+      return user;
+    } catch (e, s) {
       logger.e("Error saat login dengan Google", error: e, stackTrace: s);
       return null;
     }
