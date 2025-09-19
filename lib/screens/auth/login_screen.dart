@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rabcalc/main.dart';
 import 'package:rabcalc/services/auth_service.dart';
-import 'package:rabcalc/screens/auth/register_screen.dart'; // <-- IMPORT BARU
+import 'package:rabcalc/screens/auth/register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
