@@ -1,97 +1,97 @@
 # rabcalc_backend/boq_calculator.py
 
-def calculate_boq(project_info, room_details):
+def calculate_boq(project_info, static_room_details, room_details):
     """
-    Menghitung Bill of Quantity (BoQ) lengkap berdasarkan
-    input dimensi detail dari pengguna.
+    Menghitung Bill of Quantity (BoQ) super detail berdasarkan
+    input dimensi dari pengguna dan asumsi teknis yang lebih akurat.
+    (Struktur disesuaikan dengan versi lama)
     """
     
-    tinggi_plafon_l1 = project_info.get('ceiling_height_l1') or project_info.get('ceiling_height') or 3.0
+    # --- 1. Kumpulkan Data Dasar ---
+    tinggi_plafon_l1 = project_info.get('ceiling_height_l1') or 3.5
     tinggi_plafon_l2 = project_info.get('ceiling_height_l2') or tinggi_plafon_l1
+    jumlah_lantai = project_info.get('floor_count', 1)
     
     # --- Inisialisasi total volume ---
-    total_luas_dinding_m2 = 0.0
-    total_luas_lantai_m2 = 0.0
-    total_panjang_pondasi_m = 0.0
+    total_luas_lantai_bangunan_m2 = 0.0
+    total_luas_dinding_kotor_m2 = 0.0
+    total_panjang_dinding_pondasi_m = 0.0
     total_luas_jendela_m2 = 0.0
     total_luas_plafon_m2 = 0.0
-    total_volume_beton_m3 = 0.0
+    
+    # Gabungkan semua ruangan menjadi satu list untuk dihitung
+    semua_ruangan = list(static_room_details.values())
+    for room_list in room_details.values():
+        semua_ruangan.extend(room_list)
 
-    # Iterasi melalui setiap jenis ruangan yang dikirim dari Flutter
-    for room_type, rooms in room_details.items():
-        is_lantai_1 = 'l1' in room_type or room_type in ['teras', 'taman', 'garasi']
-        tinggi_dinding = tinggi_plafon_l1 if is_lantai_1 else tinggi_plafon_l2
+    # Iterasi melalui semua ruangan untuk perhitungan agregat
+    for room in semua_ruangan:
+        panjang = room.get('panjang') or 0.0
+        lebar = room.get('lebar') or 0.0
+        
+        # Asumsi semua tinggi dinding sama untuk penyederhanaan
+        tinggi_dinding = tinggi_plafon_l1
 
-        for room in rooms:
-            panjang = room.get('panjang', 0.0)
-            lebar = room.get('lebar', 0.0)
-            jumlah_jendela = room.get('jendela', 0)
-            
-            luas_lantai = panjang * lebar
-            keliling = 2 * (panjang + lebar)
-            # Sekarang tinggi_dinding dijamin tidak akan pernah None
-            luas_dinding = keliling * tinggi_dinding
+        luas_lantai = panjang * lebar
+        keliling = 2 * (panjang + lebar)
+        
+        total_luas_lantai_bangunan_m2 += luas_lantai
+        total_luas_dinding_kotor_m2 += keliling * tinggi_dinding
+        total_panjang_dinding_pondasi_m += keliling # Asumsi semua dinding punya pondasi
+        total_luas_jendela_m2 += (room.get('jumlah_jendela') or 0) * 1.5 # Asumsi luas 1 jendela = 1.5 m2
+        total_luas_plafon_m2 += luas_lantai # Asumsi luas plafon = luas lantai
 
-            total_luas_lantai_m2 += luas_lantai
-            total_luas_dinding_m2 += luas_dinding
-            total_luas_plafon_m2 += luas_lantai # Luas plafon = luas lantai
-            
-            if is_lantai_1:
-                total_panjang_pondasi_m += keliling
-            
-            total_luas_jendela_m2 += jumlah_jendela * 1.2
+    # --- Kalkulasi Volume Pekerjaan Berdasarkan Asumsi Teknis (Logika Baru) ---
 
-    # --- Kalkulasi Volume Pekerjaan Berdasarkan Asumsi Teknis ---
-    
-    # Volume Pondasi (Batu Kali)
-    # Asumsi: lebar atas 0.3m, lebar bawah 0.6m, tinggi 0.8m
-    volume_pondasi_m3 = total_panjang_pondasi_m * ((0.3 + 0.6) / 2) * 0.8
-    
-    # Volume Beton Bertulang (Sloof, Kolom, Balok)
-    # Asumsi sederhana: 0.15 m3 beton per m2 luas lantai
-    total_volume_beton_m3 = total_luas_lantai_m2 * 0.15
-    
-    # Kebutuhan Besi Beton
-    # Asumsi: 125 kg besi per m3 beton
-    total_kebutuhan_besi_kg = total_volume_beton_m3 * 125
-    
-    # Luas Bekisting
-    # Asumsi: 8 m2 bekisting per m3 beton
-    total_luas_bekisting_m2 = total_volume_beton_m3 * 8
-    
-    # Luas Atap
-    # Asumsi: Luas atap = 1.3x luas lantai teratas
-    luas_lantai_teratas = 0.0
-    if project_info.get('floor_count', 1) > 1:
-        # Hitung luas lantai 2 (atau lantai teratas)
-        for room_type, rooms in room_details.items():
-            if 'l2' in room_type:
-                for room in rooms:
-                    luas_lantai_teratas += room.get('panjang', 0.0) * room.get('lebar', 0.0)
-    else:
-        luas_lantai_teratas = total_luas_lantai_m2
-    
-    total_luas_atap_m2 = luas_lantai_teratas * 1.3
+    # A. PEKERJAAN PERSIAPAN
+    panjang_bangunan = static_room_details.get('ruang_tamu_l1', {}).get('panjang', 10)
+    lebar_bangunan = static_room_details.get('ruang_tamu_l1', {}).get('lebar', 8)
+    volume_bouwplank_m = 2 * (panjang_bangunan + lebar_bangunan)
 
-    # Finalisasi volume dinding bersih (dikurangi bukaan pintu & jendela)
-    jumlah_ruangan = sum(len(v) for v in room_details.values())
-    luas_dinding_bersih_m2 = total_luas_dinding_m2 - (jumlah_ruangan * 1.8) - total_luas_jendela_m2
+    # B. PEKERJAAN TANAH & PONDASI
+    volume_galian_m3 = total_panjang_dinding_pondasi_m * 0.8 * 0.8
+    volume_urugan_pasir_m3 = total_panjang_dinding_pondasi_m * 0.8 * 0.05
+    volume_pondasi_m3 = total_panjang_dinding_pondasi_m * 0.7 * 0.8
+
+    # C. PEKERJAAN STRUKTUR BETON
+    vol_sloof_m3 = total_luas_lantai_bangunan_m2 * 0.08
+    vol_kolom_m3 = total_luas_lantai_bangunan_m2 * 0.07 * jumlah_lantai
+    vol_ring_balok_m3 = total_luas_lantai_bangunan_m2 * 0.06 * jumlah_lantai
+
+    # D. PEKERJAAN DINDING & FINISHING
+    luas_bukaan_m2 = (len(semua_ruangan) * 2.1) + total_luas_jendela_m2
+    luas_dinding_bersih_m2 = total_luas_dinding_kotor_m2 - luas_bukaan_m2
     if luas_dinding_bersih_m2 < 0: luas_dinding_bersih_m2 = 0
+    
+    luas_plesteran_acian_m2 = luas_dinding_bersih_m2 * 2
+    luas_pengecatan_m2 = luas_plesteran_acian_m2 + total_luas_plafon_m2
 
-    # Buat dictionary untuk hasil akhir volume
+    # E. PEKERJAAN ATAP
+    luas_atap_m2 = (total_luas_lantai_bangunan_m2 / jumlah_lantai) * 1.4
+
+    # F. PEKERJAAN LISTRIK
+    jumlah_titik_lampu = round(total_luas_lantai_bangunan_m2 / 12) or 1
+
+    # Buat dictionary untuk hasil akhir volume (Output dari kode baru)
     volumes = {
-        'pekerjaan_galian_tanah_biasa_1m_m3': round(volume_pondasi_m3 * 1.2, 2), # Galian lebih besar dari pondasi
-        'pekerjaan_pondasi_batu_belah_1pc_5ps_m3': round(volume_pondasi_m3, 2),
-        'pekerjaan_beton_k225_m3': round(total_volume_beton_m3, 2),
-        'pekerjaan_pembesian_kg': round(total_kebutuhan_besi_kg, 2),
-        'pekerjaan_bekisting_kolom_m2': round(total_luas_bekisting_m2, 2),
-        'pekerjaan_dinding_m2': round(luas_dinding_bersih_m2, 2),
-        'pekerjaan_plesteran_m2': round(luas_dinding_bersih_m2 * 2, 2),
-        'pekerjaan_pengecatan_m2': round((luas_dinding_bersih_m2 * 2) + total_luas_plafon_m2, 2), # Pengecatan dinding + plafon
-        'pekerjaan_keramik_lantai_m2': round(total_luas_lantai_m2, 2),
+        'pekerjaan_pengukuran_dan_bouwplank_m': round(volume_bouwplank_m, 2),
+        'pekerjaan_galian_tanah_pondasi_m3': round(volume_galian_m3, 2),
+        'pekerjaan_urugan_pasir_bawah_pondasi_m3': round(volume_urugan_pasir_m3, 2),
+        'pekerjaan_pondasi_batu_belah_m3': round(volume_pondasi_m3, 2),
+        'pekerjaan_beton_sloof_20x30_m3': round(vol_sloof_m3, 2),
+        'pekerjaan_beton_kolom_25x25_m3': round(vol_kolom_m3, 2),
+        'pekerjaan_beton_ring_balok_15x20_m3': round(vol_ring_balok_m3, 2),
+        'pekerjaan_dinding_bata_merah_m2': round(luas_dinding_bersih_m2, 2),
+        'pekerjaan_dinding_bata_ringan_m2': round(luas_dinding_bersih_m2, 2),
+        'pekerjaan_plesteran_dinding_m2': round(luas_plesteran_acian_m2, 2),
+        'pekerjaan_acian_dinding_m2': round(luas_plesteran_acian_m2, 2),
+        'pekerjaan_lantai_keramik_40x40_m2': round(total_luas_lantai_bangunan_m2, 2),
+        'pekerjaan_dinding_keramik_20x25_m2': round(len(room_details.get('kamar_mandi_l1',[])) * 15, 2),
+        'pekerjaan_rangka_atap_baja_ringan_m2': round(luas_atap_m2, 2),
+        'pekerjaan_penutup_atap_genteng_beton_m2': round(luas_atap_m2, 2),
         'pekerjaan_plafon_gypsum_m2': round(total_luas_plafon_m2, 2),
-        'pekerjaan_rangka_atap_baja_ringan_m2': round(total_luas_atap_m2, 2),
-        'pekerjaan_penutup_atap_genteng_beton_m2': round(total_luas_atap_m2, 2),
+        'pekerjaan_pengecatan_tembok_m2': round(luas_pengecatan_m2, 2),
+        'pekerjaan_titik_lampu_titik': jumlah_titik_lampu,
     }
     
     return volumes

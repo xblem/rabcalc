@@ -5,6 +5,9 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from boq_calculator import calculate_boq
 from price_calculator import calculate_total_cost
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 CORS(app)
@@ -27,7 +30,8 @@ def hitung_rab_endpoint():
 
     # 1. Membongkar paket data lengkap dari Flutter
     project_info = user_data.get('project_info', {})
-    
+    static_room_details = user_data.get('static_room_details', {})
+
     # --- DEBUG VALUE & TYPE ---
     tinggi_plafon_l1 = project_info.get('ceiling_height_l1')
     print(f"Value 'ceiling_height_l1': {tinggi_plafon_l1}")

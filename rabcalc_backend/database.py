@@ -1,129 +1,131 @@
 # rabcalc_backend/database.py
 
-# Kamus ini menyimpan harga default (berdasarkan data Medan atau nasional)
+# Kamus ini menyimpan harga default (berdasarkan data referensi dan rerata nasional)
 HARGA_DEFAULT = {
     # Upah
-    "upah_pekerja_per_hari": 120000.0,
-    "upah_tukang_per_hari": 150000.0,
-    "upah_kepala_tukang_per_hari": 160000.0,
-    "upah_mandor_per_hari": 165000.0,
+    "upah_pekerja": 120000.0,
+    "upah_tukang_batu": 150000.0,
+    "upah_tukang_kayu": 155000.0,
+    "upah_tukang_besi": 155000.0,
+    "upah_tukang_cat": 150000.0,
+    "upah_kepala_tukang": 170000.0,
+    "upah_mandor": 180000.0,
+
+    # Material Pokok & Struktur
+    "semen_pc_50kg": 75000.0,
+    "pasir_pasang": 250000.0,       # per m3
+    "pasir_beton": 280000.0,        # per m3
+    "pasir_urug": 220000.0,         # per m3
+    "batu_pecah_1-2": 320000.0,     # per m3 (Kerikil)
+    "batu_belah_10-15": 280000.0,   # per m3 (Pondasi)
+    "bata_merah_bakar": 800.0,      # per bh
+    "bata_ringan_hebel": 650000.0,  # per m3
+    "semen_instan_perekat": 95000.0, # per sak 40kg
+    "besi_beton_polos": 15000.0,     # per kg
+    "kawat_beton": 25000.0,         # per kg
     
-    # Material Utama
-    "semen_pc_50kg_per_sak": 75000.0,
-    "pasir_pasang_per_m3": 250000.0,
-    "pasir_beton_per_m3": 280000.0,
-    "pasir_urug_per_m3": 220000.0,
-    "batu_pecah_per_m3": 300000.0, # Split/Kerikil
-    "batu_belah_per_m3": 280000.0, # Pondasi
-    "bata_merah_per_bh": 800.0,
-    "hebel_per_m3": 650000.0, # BARU
-    "semen_instan_hebel_per_sak": 90000.0, # BARU
-    "besi_beton_per_kg": 15000.0,
-    "kawat_beton_per_kg": 25000.0,
-    "papan_bekisting_per_m2": 60000.0,
-    "paku_per_kg": 20000.0,
-    "minyak_bekisting_per_liter": 15000.0,
+    # Material Bekisting & Persiapan
+    "papan_kayu_kelas_3": 2500000.0, # per m3
+    "balok_kayu_kelas_2": 4000000.0, # per m3
+    "paku_biasa": 22000.0,           # per kg
+    "minyak_bekisting": 15000.0,     # per liter
+    "plywood_9mm": 130000.0,         # per lembar
 
-    # Material Atap (BARU)
-    "baja_ringan_truss_per_m2": 150000.0,
-    "genteng_beton_per_bh": 3000.0,
+    # Material Atap
+    "baja_ringan_c75": 180000.0,      # per m2 (terpasang)
+    "genteng_beton_flat": 3500.0,    # per bh
+    "nok_genteng_beton": 15000.0,    # per bh
+    "sekrup_baja_ringan": 500.0,      # per bh
 
-    # Material Finishing
-    "cat_tembok_kualitas_sedang_per_kg": 40000.0, # DIPERBARUI
-    "cat_tembok_kualitas_baik_per_kg": 65000.0, # BARU
-    "keramik_40x40_per_m2": 65000.0,
-    "Keramik 20x20_per_m2": 67500.0,
-    "semen_nat_per_kg": 25000.0, # BARU
-    "gypsum_board_per_lembar": 60000.0, # BARU
-    "rangka_hollow_per_m": 15000.0, # BARU
+    # Material Finishing & Interior
+    "cat_tembok_vinilex": 30000.0,    # per kg
+    "cat_tembok_dulux": 65000.0,      # per kg
+    "plamir_tembok": 15000.0,         # per kg
+    "keramik_lantai_40x40": 70000.0,  # per m2
+    "keramik_dinding_20x25": 75000.0, # per m2
+    "semen_nat": 25000.0,             # per kg
+    "gypsum_board_9mm": 65000.0,      # per lembar
+    "rangka_hollow_galvanis": 18000.0, # per m
+    "kusen_pintu_kayu_kamper": 4500000.0, # per m3
+    "pintu_panel_kayu": 450000.0,       # per m2
+    
+    # Material Sanitasi & Elektrikal
+    "kloset_duduk_toto": 2200000.0, # per bh
+    "pipa_pvc_4_inch": 35000.0,       # per m
+    "stop_kontak_panasonic": 30000.0, # per bh
+    "lampu_led_philips": 40000.0,       # per bh
+    "kabel_nym_2x1.5": 8000.0,        # per m
 }
 
-# Kamus ini adalah "Buku Resep" AHSP kita.
+# Kamus ini adalah "Buku Resep" AHSP kita, sudah disempurnakan.
 KOEFISIEN_AHSP = {
-    # --- PEKERJAAN PERSIAPAN & TANAH ---
-    "pekerjaan_galian_tanah_biasa_1m_m3": {
-        "default": { "upah_pekerja_per_hari": 0.75, "upah_mandor_per_hari": 0.025 }
+    # --- PEKERJAAN PERSIAPAN ---
+    "pekerjaan_pengukuran_dan_bouwplank_m": {
+        "default": {"balok_kayu_kelas_2": 0.012, "paku_biasa": 0.02, "papan_kayu_kelas_3": 0.007, "upah_pekerja": 0.1, "upah_tukang_kayu": 0.1, "upah_kepala_tukang": 0.01, "upah_mandor": 0.005}
     },
-    "pekerjaan_urugan_pasir_m3": {
-        "default": { "pasir_urug_per_m3": 1.2, "upah_pekerja_per_hari": 0.3, "upah_mandor_per_hari": 0.01 }
-    },
-    
-    # --- PEKERJAAN PONDASI ---
-    "pekerjaan_pondasi_batu_belah_1pc_5ps_m3": {
-        "default": {
-            "batu_belah_per_m3": 1.2, "semen_pc_50kg_per_sak": 2.72, "pasir_pasang_per_m3": 0.544,
-            "upah_pekerja_per_hari": 1.5, "upah_tukang_per_hari": 0.75, "upah_kepala_tukang_per_hari": 0.075, "upah_mandor_per_hari": 0.075,
-        }
+    "pekerjaan_pembersihan_lokasi_m2": {
+        "default": {"upah_pekerja": 0.05, "upah_mandor": 0.005}
     },
 
-    # --- PEKERJAAN BETON ---
-    "pekerjaan_beton_k225_m3": {
-        "default": {
-            "semen_pc_50kg_per_sak": 7.52, "pasir_beton_per_m3": 0.48, "batu_pecah_per_m3": 0.77,
-            "upah_pekerja_per_hari": 1.65, "upah_tukang_per_hari": 0.275, "upah_kepala_tukang_per_hari": 0.028, "upah_mandor_per_hari": 0.083,
-        }
+    # --- PEKERJAAN TANAH & PONDASI ---
+    "pekerjaan_galian_tanah_pondasi_m3": {
+        "default": { "upah_pekerja": 0.75, "upah_mandor": 0.025 }
     },
-    "pekerjaan_pembesian_kg": {
-        "default": {
-            "besi_beton_per_kg": 1.05, "kawat_beton_per_kg": 0.015,
-            "upah_pekerja_per_hari": 0.007, "upah_tukang_per_hari": 0.007, "upah_kepala_tukang_per_hari": 0.0007, "upah_mandor_per_hari": 0.0004,
-        }
+    "pekerjaan_urugan_pasir_bawah_pondasi_m3": {
+        "default": { "pasir_urug": 1.2, "upah_pekerja": 0.3, "upah_mandor": 0.01 }
     },
-    "pekerjaan_bekisting_kolom_m2": {
-        "default": {
-            "papan_bekisting_per_m2": 1.1, "paku_per_kg": 0.4, "minyak_bekisting_per_liter": 0.2,
-            "upah_pekerja_per_hari": 0.66, "upah_tukang_per_hari": 0.33, "upah_kepala_tukang_per_hari": 0.033, "upah_mandor_per_hari": 0.033,
-        }
+    "pekerjaan_pondasi_batu_belah_m3": {
+        "default": {"batu_belah_10-15": 1.2, "semen_pc_50kg": 2.72, "pasir_pasang": 0.544, "upah_pekerja": 1.5, "upah_tukang_batu": 0.75, "upah_kepala_tukang": 0.075, "upah_mandor": 0.075}
+    },
+
+    # --- PEKERJAAN BETON BERTULANG ---
+    "pekerjaan_beton_sloof_20x30_m3": {
+        "default": {"semen_pc_50kg": 8.4, "pasir_beton": 0.52, "batu_pecah_1-2": 0.78, "besi_beton_polos": 180.0, "kawat_beton": 2.7, "papan_kayu_kelas_3": 0.27, "paku_biasa": 2.0, "minyak_bekisting": 0.6, "upah_pekerja": 5.2, "upah_tukang_batu": 1.5, "upah_tukang_besi": 1.2, "upah_tukang_kayu": 1.25, "upah_kepala_tukang": 0.2, "upah_mandor": 0.26}
+    },
+    "pekerjaan_beton_kolom_25x25_m3": {
+        "default": {"semen_pc_50kg": 8.4, "pasir_beton": 0.52, "batu_pecah_1-2": 0.78, "besi_beton_polos": 150.0, "kawat_beton": 2.25, "papan_kayu_kelas_3": 0.27, "paku_biasa": 2.0, "minyak_bekisting": 0.6, "upah_pekerja": 5.2, "upah_tukang_batu": 1.5, "upah_tukang_besi": 1.2, "upah_tukang_kayu": 1.25, "upah_kepala_tukang": 0.2, "upah_mandor": 0.26}
+    },
+    "pekerjaan_beton_ring_balok_15x20_m3": {
+        "default": {"semen_pc_50kg": 8.4, "pasir_beton": 0.52, "batu_pecah_1-2": 0.78, "besi_beton_polos": 175.0, "kawat_beton": 2.6, "papan_kayu_kelas_3": 0.27, "paku_biasa": 2.0, "minyak_bekisting": 0.6, "upah_pekerja": 5.2, "upah_tukang_batu": 1.5, "upah_tukang_besi": 1.2, "upah_tukang_kayu": 1.25, "upah_kepala_tukang": 0.2, "upah_mandor": 0.26}
     },
 
     # --- PEKERJAAN DINDING & FINISHING ---
-    "pekerjaan_dinding_m2": {
-        "Batu Bata/Bata Merah": {
-            "bata_merah_per_bh": 70.0, "semen_pc_50kg_per_sak": 0.23, "pasir_pasang_per_m3": 0.04,
-            "upah_tukang_per_hari": 0.1, "upah_pekerja_per_hari": 0.3,
-        },
-        # RESEP DINDING BARU
-        "Hebel/Bata Ringan": {
-            "hebel_per_m3": 0.1, "semen_instan_hebel_per_sak": 0.25,
-            "upah_tukang_per_hari": 0.1, "upah_pekerja_per_hari": 0.1,
-        }
+    "pekerjaan_dinding_bata_merah_m2": {
+        "default": {"bata_merah_bakar": 70.0, "semen_pc_50kg": 0.23, "pasir_pasang": 0.04, "upah_pekerja": 0.3, "upah_tukang_batu": 0.1, "upah_kepala_tukang": 0.01, "upah_mandor": 0.015}
     },
-    "pekerjaan_plesteran_m2": {
-        "default": { "semen_pc_50kg_per_sak": 0.15, "pasir_pasang_per_m3": 0.02, "upah_tukang_per_hari": 0.15, "upah_pekerja_per_hari": 0.2 }
+     "pekerjaan_dinding_bata_ringan_m2": {
+        "default": {"bata_ringan_hebel": 0.1, "semen_instan_perekat": 0.25, "upah_pekerja": 0.1, "upah_tukang_batu": 0.1, "upah_kepala_tukang": 0.01, "upah_mandor": 0.005}
     },
-    # RESEP PENGECATAN DIPERBARUI
-    "pekerjaan_pengecatan_m2": {
-        "Cat Kualitas Sedang": { "cat_tembok_kualitas_sedang_per_kg": 0.2, "upah_tukang_per_hari": 0.07, "upah_pekerja_per_hari": 0.02 },
-        "Cat Kualitas Baik": { "cat_tembok_kualitas_baik_per_kg": 0.2, "upah_tukang_per_hari": 0.07, "upah_pekerja_per_hari": 0.02 }
+    "pekerjaan_plesteran_dinding_m2": {
+        "default": { "semen_pc_50kg": 0.154, "pasir_pasang": 0.023, "upah_pekerja": 0.3, "upah_tukang_batu": 0.15, "upah_kepala_tukang": 0.015, "upah_mandor": 0.015 }
     },
-    # RESEP KERAMIK DIPERBARUI
-    "pekerjaan_keramik_lantai_m2": {
-        "default": {
-            "keramik_40x40_per_m2": 1.05, "semen_pc_50kg_per_sak": 0.2, "pasir_pasang_per_m3": 0.045, "semen_nat_per_kg": 0.03,
-            "upah_tukang_per_hari": 0.25, "upah_pekerja_per_hari": 0.35, "upah_kepala_tukang_per_hari": 0.025, "upah_mandor_per_hari": 0.012,
-        }
+    "pekerjaan_acian_dinding_m2": {
+        "default": { "semen_pc_50kg": 0.065, "upah_pekerja": 0.1, "upah_tukang_batu": 0.075, "upah_kepala_tukang": 0.008, "upah_mandor": 0.005 }
     },
-    # RESEP PLAFON BARU
+    "pekerjaan_pengecatan_tembok_m2": {
+        "Cat Kualitas Sedang": { "plamir_tembok": 0.1, "cat_tembok_vinilex": 0.26, "upah_pekerja": 0.02, "upah_tukang_cat": 0.063, "upah_kepala_tukang": 0.006, "upah_mandor": 0.003 },
+        "Cat Kualitas Baik": { "plamir_tembok": 0.1, "cat_tembok_dulux": 0.26, "upah_pekerja": 0.02, "upah_tukang_cat": 0.063, "upah_kepala_tukang": 0.006, "upah_mandor": 0.003 }
+    },
+    "pekerjaan_lantai_keramik_40x40_m2": {
+        "default": {"keramik_lantai_40x40": 1.05, "semen_pc_50kg": 0.2, "pasir_pasang": 0.045, "semen_nat": 0.03, "upah_pekerja": 0.35, "upah_tukang_batu": 0.25, "upah_kepala_tukang": 0.025, "upah_mandor": 0.012}
+    },
+    "pekerjaan_dinding_keramik_20x25_m2": {
+        "default": {"keramik_dinding_20x25": 1.05, "semen_pc_50kg": 0.2, "pasir_pasang": 0.045, "semen_nat": 0.03, "upah_pekerja": 0.45, "upah_tukang_batu": 0.3, "upah_kepala_tukang": 0.03, "upah_mandor": 0.02}
+    },
     "pekerjaan_plafon_gypsum_m2": {
-        "default": {
-            "gypsum_board_per_lembar": 0.364,
-            "rangka_hollow_per_m": 4.5,
-            "paku_per_kg": 0.11,
-            "upah_pekerja_per_hari": 0.1, "upah_tukang_per_hari": 0.5, "upah_kepala_tukang_per_hari": 0.05, "upah_mandor_per_hari": 0.005,
-        }
+        "default": {"gypsum_board_9mm": 0.364, "rangka_hollow_galvanis": 4.5, "paku_biasa": 0.11, "upah_pekerja": 0.1, "upah_tukang_kayu": 0.5, "upah_kepala_tukang": 0.05, "upah_mandor": 0.005}
     },
-    
-    # --- PEKERJAAN ATAP (BARU) ---
+
+    # --- PEKERJAAN ATAP ---
     "pekerjaan_rangka_atap_baja_ringan_m2": {
-        "default": {
-            "baja_ringan_truss_per_m2": 1.0,
-        }
+        "default": {"baja_ringan_c75": 1.05, "upah_pekerja": 0.2, "upah_tukang_besi": 0.2, "upah_kepala_tukang": 0.02, "upah_mandor": 0.01}
     },
     "pekerjaan_penutup_atap_genteng_beton_m2": {
-        "default": {
-            "genteng_beton_per_bh": 11.0,
-            "paku_per_kg": 0.15,
-            "upah_pekerja_per_hari": 0.15, "upah_tukang_per_hari": 0.075, "upah_mandor_per_hari": 0.008,
-        }
-    }
+        "default": {"genteng_beton_flat": 11.0, "nok_genteng_beton": 0.2, "paku_biasa": 0.15, "upah_pekerja": 0.15, "upah_tukang_batu": 0.075, "upah_mandor": 0.008}
+    },
+    
+    # --- PEKERJAAN LISTRIK ---
+    "pekerjaan_titik_lampu_titik": {
+        "default": {"kabel_nym_2x1.5": 12.0, "upah_pekerja": 0.2, "upah_tukang_besi": 0.5, "upah_kepala_tukang": 0.05, "upah_mandor": 0.01}
+    },
 }
