@@ -50,6 +50,7 @@ dependencies:
   logger: ^2.3.0
   collection: ^1.18.0
   share_plus: ^10.0.2
+  flutter_svg: ^2.0.10+1
 
 dev_dependencies:
   flutter_test:
@@ -81,6 +82,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/vectors/
 
 flutter_launcher_icons:
   android: "launcher_icon"
