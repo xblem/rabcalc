@@ -48,6 +48,8 @@ dependencies:
   firebase_auth: ^6.0.0
   cloud_firestore: ^6.0.0
   logger: ^2.3.0
+  collection: ^1.18.0
+  share_plus: ^10.0.2
 
 dev_dependencies:
   flutter_test:
