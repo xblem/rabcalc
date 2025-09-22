@@ -16,19 +16,26 @@ class HomeScreen extends StatelessWidget {
         // PERBAIKAN: Menampilkan logo di samping teks
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(
               'assets/images/logo_polos.png', 
-              height: 28,
+              height: 38,
               // Menambahkan error builder untuk memberi petunjuk jika file tidak ada
               errorBuilder: (context, error, stackTrace) {
                 return const Icon(Icons.error, color: Colors.red);
               },
             ),
-            const SizedBox(width: 8),
-            const Text('RabCalc', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDark)),
-          ],
+            const SizedBox(width: 10),
+             Flexible(
+      child: const Text(
+        'RabCalc',
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: AppColors.primaryDark,
+        ),
+      ),
+    ),
+  ],
         ),
         centerTitle: true,
         backgroundColor: AppColors.background,

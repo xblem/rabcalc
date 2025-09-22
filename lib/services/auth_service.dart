@@ -67,18 +67,16 @@ class AuthService {
       UserCredential result = await _auth.signInWithCredential(credential);
       User? user = result.user;
 
-      // Jika ini adalah user baru, buatkan dokumen untuknya di Firestore
       if (user != null && result.additionalUserInfo?.isNewUser == true) {
         logger.i("User Google baru terdeteksi. Membuat dokumen Firestore...");
         await _firestore.collection('users').doc(user.uid).set({
           'uid': user.uid,
           'email': user.email,
           'displayName': user.displayName, 
-          'photoURL': user.photoURL,       
+          'photoURL': user.photoURL,      
           'createdAt': Timestamp.now(),
         });
       }
-      // --- AKHIR PENAMBAHAN ---
 
       logger.i("Login dengan Google berhasil untuk user: ${user?.uid}");
       return user;
@@ -108,6 +106,19 @@ class AuthService {
     }
   }
 
+  // Sign in Anonymously (sebagai Tamu)
+  Future<User?> signInAnonymously() async {
+    try {
+      logger.i("Mencoba login sebagai tamu...");
+      UserCredential userCredential = await _auth.signInAnonymously();
+      logger.i("Berhasil masuk sebagai tamu. UID: ${userCredential.user?.uid}");
+      return userCredential.user;
+    } catch (e, s) {
+      logger.e("Error saat login sebagai tamu", error: e, stackTrace: s);
+      return null;
+    }
+  }
+  
   // Sign Out
   Future<void> signOut() async {
     logger.i("User melakukan sign out...");

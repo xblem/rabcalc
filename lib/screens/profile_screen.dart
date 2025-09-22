@@ -33,10 +33,12 @@ class ProfileScreen extends StatelessWidget {
                 backgroundImage: user?.photoURL != null ? NetworkImage(user!.photoURL!) : null,
                 child: user?.photoURL == null
                     ? Text(
-                        user?.displayName?.substring(0, 1).toUpperCase() ?? 'U',
-                        style: const TextStyle(fontSize: 40, color: Colors.white),
-                      )
-                    : null,
+                      (user?.displayName ?? '').isNotEmpty
+                        ? user!.displayName!.substring(0, 1).toUpperCase()
+                        : 'U', // Jika kosong (null atau ""), tampilkan 'U'
+                      style: const TextStyle(fontSize: 40, color: Colors.white),
+                    )
+                  : null,
               ),
               const SizedBox(height: 12),
               Text(

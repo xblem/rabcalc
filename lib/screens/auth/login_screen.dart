@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:rabcalc/main.dart';
 import 'package:rabcalc/services/auth_service.dart';
 import 'package:rabcalc/screens/auth/register_screen.dart';
+import 'package:rabcalc/utils/show_custom_flushbar.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,22 +25,70 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordController.dispose();
     super.dispose();
   }
-
-  void _showErrorSnackbar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+  
+  Future<void> _handleLogin() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      showErrorFlushbar(context, "Email dan Password tidak boleh kosong.");
+      return;
+    }
+    
+    setState(() => _isLoading = true);
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = await authService.signInWithEmail(
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
     );
+    
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+    
+    if (user == null && mounted) {
+      showErrorFlushbar(context, "Login Gagal. Periksa kembali email dan password Anda.");
+    }
   }
 
-@override
-  Widget build(BuildContext context) {
-    // Ambil authService dari Provider di dalam build method (DARI KODE BARU)
-    final authService = Provider.of<AuthService>(context, listen: false);
+  Future<void> _handleGoogleLogin() async {
+      setState(() => _isLoading = true);
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final user = await authService.signInWithGoogle();
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+      if (user == null && mounted) {
+        showErrorFlushbar(context, "Login dengan Google gagal.");
+      }
+  }
+  
+  Future<void> _handleFacebookLogin() async {
+      setState(() => _isLoading = true);
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final user = await authService.signInWithFacebook();
+       if (mounted) {
+        setState(() => _isLoading = false);
+      }
+      if (user == null && mounted) {
+        showErrorFlushbar(context, "Login dengan Facebook dibatalkan atau gagal.");
+      }
+  }
 
+  // --- FUNGSI BARU UNTUK GUEST LOGIN ---
+  Future<void> _handleGuestLogin() async {
+    setState(() => _isLoading = true);
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = await authService.signInAnonymously();
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+    if (user == null && mounted) {
+      showErrorFlushbar(context, "Gagal masuk sebagai tamu.");
+    }
+    // Jika berhasil, AuthGate akan otomatis bernavigasi
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -57,7 +106,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -68,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 100),
                 Center(child: Image.asset("assets/images/login_illustration.png", height: 180)),
                 const SizedBox(height: 24),
-                const Text("Welcome Back,", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.primaryDark)),
+                const Text("Selamat Datang,", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.primaryDark)),
                 Text("Sign in to continue!", style: TextStyle(fontSize: 18, color: Colors.grey)),
                 const SizedBox(height: 32),
                 _buildTextField(hint: "Email", icon: Icons.person_outline, controller: _emailController),
@@ -76,24 +124,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 _buildTextField(hint: "Password", icon: Icons.lock_outline, obscureText: true, controller: _passwordController),
                 const SizedBox(height: 32),
                 ElevatedButton(
-                  onPressed: () async {
-                    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-                      _showErrorSnackbar("Email dan Password tidak boleh kosong.");
-                      return;
-                    }
-                    setState(() => _isLoading = true);
-                    final user = await authService.signInWithEmail(_emailController.text, _passwordController.text);
-                    if (!mounted) return;
-                    setState(() => _isLoading = false);
-                    if (user == null) {
-                      _showErrorSnackbar("Login gagal. Periksa kembali email dan password Anda.");
-                    }
-                  },
+                  onPressed: _isLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryDark,
                     minimumSize: const Size(double.infinity, 50),
                   ),
-                  child: const Text("Sign In"),
+                  child: _isLoading 
+                    ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 3,)
+                    : const Text("Sign In"),
                 ),
                 const SizedBox(height: 24),
                 const Row(
@@ -110,22 +148,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildSocialButton('assets/images/logo_google.png', onPressed: () async {
-                      setState(() => _isLoading = true);
-                      await authService.signInWithGoogle();
-                      if (!mounted) return;
-                      setState(() => _isLoading = false);
-                    }),
+                    _buildSocialButton('assets/images/logo_google.png', onPressed: _isLoading ? (){} : _handleGoogleLogin),
                     const SizedBox(width: 20),
-                    _buildSocialButton('assets/images/logo_facebook.png', onPressed: () async {
-                        setState(() => _isLoading = true);
-                        await authService.signInWithFacebook();
-                        if (!mounted) return;
-                        setState(() => _isLoading = false);
-                    }),
+                    _buildSocialButton('assets/images/logo_facebook.png', onPressed: _isLoading ? (){} : _handleFacebookLogin),
                   ],
                 ),
-                // --- KODE BARU DITAMBAHKAN DI SINI ---
                 const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -145,7 +172,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24), // Untuk padding bawah
+                // --- TOMBOL BARU DITAMBAHKAN DI SINI ---
+                Center(
+                  child: TextButton(
+                    onPressed: _isLoading ? null : _handleGuestLogin,
+                    child: const Text(
+                      "Masuk sebagai Tamu",
+                       style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
               ],
             ),
           ),

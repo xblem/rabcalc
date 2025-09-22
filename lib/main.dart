@@ -67,7 +67,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const AuthGate(), // Menggunakan AuthGate sebagai home dari kode baru
+      home: const AuthGate(), 
     );
   }
 }
